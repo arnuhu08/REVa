@@ -1,2 +1,2 @@
 # REVa (Robustness Enhancement via Validation)
-This contains the validation and resilient training procedure for deep learning classifiers
+REVa is an enhancement procedure for deep learning classifiers. It does targeted enhancement across both adversarial and common corruption datasets. It involves exploring models weaknesses on adversarial and common dataset generated from weak robust samples.
