@@ -3,6 +3,7 @@ REVa is a two-part enhancement procedure for deep learning classifiers. First, i
 # Per-input resilient Analyzer
 cd Per-input resilient analyzer
 1. first train the preferred model architecture using train.py. E.g. AllConvNet: python train.py -m allconv
+2. assign misclassification score to each data instance by running local
 
 # Citations
 @inproceedings{hendrycksbenchmarking,
