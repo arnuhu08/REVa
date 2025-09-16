@@ -1,0 +1,1 @@
+This dir contains the scripts for running the IN100 results. IN100.py is the script for reproducing REVa results, IN100_AX.py for reproducing the Augmix results and IN100_orig.py for reproducing the standard models results.
