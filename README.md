@@ -7,6 +7,7 @@ cd Per-input resilient analyzer
 
 # INfolder
 This folder contains the scripts for reproducing the results for REVa, Augmix and the standard method.
+To generate the adversarial dataset for training REVa enhanced models run the notebook AdversarialDatasetGeneration.ipynb in the adversarial-attacks-pytorch folder 
 # Citations
 @inproceedings{hendrycksbenchmarking,
   title={Benchmarking Neural Network Robustness to Common Corruptions and Perturbations},
