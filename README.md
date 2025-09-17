@@ -4,7 +4,10 @@ REVa is a two-part enhancement procedure for deep learning classifiers. First, i
 cd Per-input resilient analyzer
 1. first train the preferred model architecture using train.py. E.g. AllConvNet: python train.py -m allconv
 2. assign misclassification score to each data instance for a given model architecture by running localRobustnessAnalysis.py. E.g. AllConvNet: python localRobustnessAnalysis.py -r <path/to/modelcheckpoint>
-
+# INfolder
+cd CIFAR 
+1. This folder contains the scripts for reproducing the results for REVa enhanced models on CIFAR datasets.
+2. To generate the adversarial dataset for training REVa enhanced models run the notebook AdversarialDatasetGeneration.ipynb in the adversarial-attacks-pytorch folder
 # INfolder
 cd IN100 
 1. This folder contains the scripts for reproducing the results for REVa, Augmix and the standard method.
@@ -25,7 +28,8 @@ cd IN100
 Training Configurations used in our paper:
 - For the CIFAR DATASETs same use training recipes used in the default augmix paper for fair comparisons.
 - For ImageNet100
-- ResNet-18: python IN100.py <path/to/imagenet100> <path/to/imagenet100-c> --pretrained
+- ResNet-18: python IN100.py -m resnet18 <path/to/imagenet100> <path/to/imagenet100-c> --pretrained
+- Swin_V2_B: python IN100.py -m swin_v2_b <path/to/imagenet100> <path/to/imagenet100-c> --pretrained
 # Citations
 @inproceedings{hendrycksbenchmarking,
   title={Benchmarking Neural Network Robustness to Common Corruptions and Perturbations},
