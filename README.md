@@ -20,6 +20,12 @@ cd IN100
    Run `conda env create -f REVaEnv.yml`
 2. Down CIFAR-10-C, CIFAR-100-C and ImageNet-C datasets from the following link:
    https://github.com/hendrycks/robustness
+
+# Usage
+Training Configurations used in our paper:
+- For the CIFAR DATASETs same use training recipes used in the default augmix paper for fair comparisons.
+- For ImageNet100
+- ResNet-18: python IN100.py <path/to/imagenet100> <path/to/imagenet100-c> --pretrained
 # Citations
 @inproceedings{hendrycksbenchmarking,
   title={Benchmarking Neural Network Robustness to Common Corruptions and Perturbations},
