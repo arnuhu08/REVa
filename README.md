@@ -6,6 +6,7 @@ cd Per-input resilient analyzer
 2. assign misclassification score to each data instance for a given model architecture by running localRobustnessAnalysis.py. E.g. AllConvNet: python localRobustnessAnalysis.py -r <path/to/modelcheckpoint>
 
 # INfolder
+cd INfolder
 1. This folder contains the scripts for reproducing the results for REVa, Augmix and the standard method.
 2. To generate the adversarial dataset for training REVa enhanced models run the notebook AdversarialDatasetGeneration.ipynb in the adversarial-attacks-pytorch folder 
 # Citations
