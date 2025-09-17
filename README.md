@@ -9,12 +9,6 @@ cd Per-input resilient analyzer
 cd IN100 
 1. This folder contains the scripts for reproducing the results for REVa, Augmix and the standard method.
 2. To generate the adversarial dataset for training REVa enhanced models run the notebook AdversarialDatasetGeneration.ipynb in the adversarial-attacks-pytorch folder 
-# Citations
-@inproceedings{hendrycksbenchmarking,
-  title={Benchmarking Neural Network Robustness to Common Corruptions and Perturbations},
-  author={Hendrycks, Dan and Dietterich, Thomas},
-  booktitle={International Conference on Learning Representations}
-}
 # Requirements
 - numpy>=1.15.0
 - Pillow>=6.1.0
@@ -26,4 +20,10 @@ cd IN100
    Run `conda env create -f REVaEnv.yml`
 2. Down CIFAR-10-C, CIFAR-100-C and ImageNet-C datasets from the following link:
    '''markdown
-   https://github.com/hendrycks/robustness
+   'https://github.com/hendrycks/robustness'
+# Citations
+@inproceedings{hendrycksbenchmarking,
+  title={Benchmarking Neural Network Robustness to Common Corruptions and Perturbations},
+  author={Hendrycks, Dan and Dietterich, Thomas},
+  booktitle={International Conference on Learning Representations}
+}
