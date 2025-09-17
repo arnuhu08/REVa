@@ -19,8 +19,7 @@ cd IN100
    ```markdown
    Run `conda env create -f REVaEnv.yml`
 2. Down CIFAR-10-C, CIFAR-100-C and ImageNet-C datasets from the following link:
-   ```markdown
-   `https://github.com/hendrycks/robustness`
+   https://github.com/hendrycks/robustness
 # Citations
 @inproceedings{hendrycksbenchmarking,
   title={Benchmarking Neural Network Robustness to Common Corruptions and Perturbations},
