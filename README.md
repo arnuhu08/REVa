@@ -19,4 +19,8 @@ cd IN100
 - numpy>=1.15.0
 - Pillow>=6.1.0
 - torch==2.1.0
-- torchvision
+- torchvision>=0.16.0
+# Setup
+1. Install PyTorch and other required python libraries with:
+   ```markdown
+   Run `conda env create -f requirements.yml`
