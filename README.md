@@ -15,3 +15,8 @@ cd IN100
   author={Hendrycks, Dan and Dietterich, Thomas},
   booktitle={International Conference on Learning Representations}
 }
+# Requirements
+- numpy>=1.15.0
+- Pillow>=6.1.0
+- torch==2.1.0
+- torchvision
