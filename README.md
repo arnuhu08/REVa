@@ -23,4 +23,7 @@ cd IN100
 # Setup
 1. Install PyTorch and other required python libraries with:
    ```markdown
-   Run `conda env create -f requirements.yml`
+   Run `conda env create -f REVaEnv.yml`
+2. Down CIFAR-10-C, CIFAR-100-C and ImageNet-C datasets from the following link:
+   '''markdown
+   https://github.com/hendrycks/robustness
