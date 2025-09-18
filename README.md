@@ -66,6 +66,12 @@ cd IN100
   - **Swin_V2_B**  
     ```bash
     python IN100.py -m swin_v2_b <path/to/imagenet100> <path/to/imagenet100-c> --pretrained
-    ```  
+    ```
+  # Misc
+  - Links for generating the ImageNet100 and ImageNet100-C
+    ```bash
+    Link: https://github.com/danielchyeh/ImageNet-100-Pytorch.git
+    ```
+    
 
 
