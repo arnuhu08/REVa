@@ -10,23 +10,26 @@ cd Per-input resilient analyzer
 1. first train the preferred model architecture using train.py. E.g. AllConvNet: python train.py -m allconv
 2. assign misclassification score to each data instance for a given model architecture by running localRobustnessAnalysis.py. E.g. AllConvNet: python localRobustnessAnalysis.py -r <path/to/modelcheckpoint>
 - For IN100 dataset:
-# CIFARFolder
-cd CIFAR 
-1. This folder contains the scripts for reproducing the results for REVa enhanced models on CIFAR datasets.
-2. To generate the adversarial dataset for training REVa enhanced models run the notebook AdversarialDatasetGeneration.ipynb in the adversarial-attacks-pytorch folder
-# INfolder
-cd IN100 
-1. This folder contains the scripts for reproducing the results for REVa, Augmix and the standard method.
-2. To generate the adversarial dataset for training REVa enhanced models run the notebook AdversarialDatasetGeneration.ipynb in the adversarial-attacks-pytorch folder 
+# CIFAR Folder
+cd CIFAR  
+1. Contains scripts for reproducing results of REVa-enhanced models on CIFAR datasets.  
+2. To generate adversarial datasets for training REVa-enhanced models, run the notebook `AdversarialDatasetGeneration.ipynb` in the `adversarial-attacks-pytorch` folder.  
+
+# IN100 Folder
+cd IN100  
+1. Contains scripts for reproducing results of REVa, AugMix, and the standard method on ImageNet100.  
+2. To generate adversarial datasets for training REVa-enhanced models, run the notebook `AdversarialDatasetGeneration.ipynb` in the `adversarial-attacks-pytorch` folder.  
+
 # Requirements
-- numpy>=1.15.0
-- Pillow>=6.1.0
-- torch==2.1.0
-- torchvision>=0.16.0
+- numpy >= 1.15.0  
+- Pillow >= 6.1.0  
+- torch == 2.1.0  
+- torchvision >= 0.16.0  
+
 # Setup
-1. Install PyTorch and other required python libraries with:
-   ```markdown
-   Run `conda env create -f REVaEnv.yml`
+1. Install PyTorch and the required Python libraries:  
+   ```bash
+   conda env create -f REVaEnv.yml
 2. Down CIFAR-10-C, CIFAR-100-C and ImageNet-C datasets from the following link:
    https://github.com/hendrycks/robustness
 
