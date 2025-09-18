@@ -21,7 +21,7 @@ cd Per-input-resilient-analyzer
      ```
 
 - For IN100 dataset:  
-  1. Evaluate the required pretrained models from PyTorch (e.g., ResNet-18 or Swin_V2_B).  
+  1. Get the required pretrained models from PyTorch (e.g., ResNet-18 or Swin_V2_B).  
   2. Run stability analysis:  
      ```
      python IN100Stability.py
