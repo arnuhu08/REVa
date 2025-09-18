@@ -67,11 +67,16 @@ cd IN100
     ```bash
     python IN100.py -m swin_v2_b <path/to/imagenet100> <path/to/imagenet100-c> --pretrained
     ```
-  # Misc
-  - Links for generating the ImageNet100 and ImageNet100-C
-    ```bash
-    Link: https://github.com/danielchyeh/ImageNet-100-Pytorch.git
-    ```
+  ## Misc
+
+- **Generating ImageNet-100 and ImageNet-100-C**
+
+  - Repository: [ImageNet-100-Pytorch](https://github.com/danielchyeh/ImageNet-100-Pytorch)  
+
+  - Steps:
+    1. Download the **ImageNet-1K** and **ImageNet-C** datasets from their official sources.  
+    2. Follow the procedure in the linked repository to generate **ImageNet-100** and **ImageNet-100-C**.  
+
     
 
 
