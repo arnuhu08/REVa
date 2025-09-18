@@ -1,6 +1,8 @@
 # REVa (Robustness Enhancement via Validation)
-REVa is a two-part enhancement procedure for deep learning classifiers. First, it evaluates models on adversarial and corruption datasets generated from weak robust samples. Then, it uses the evaluation outcomes to guide targeted improvements in model robustness. To generate the weak robust samples, a per-input resilient analyzer is proposed. It reorders a given dataset from most weak robust to strong robust. These weak robust samples are then employed to create adversarial and common corruption datasets using Torchattacks modules and the corruption types defined in https://github.com/hendrycks/robustness.
 ![Journal Framework](https://github.com/arnuhu08/REVa/blob/main/pictures%20/JournalFramework.png)
+# Introduction
+We introduce REVa, a two-part enhancement procedure for deep learning classifiers. First, it evaluates models on adversarial and corruption datasets generated from weak robust samples. Then, it uses the evaluation outcomes to guide targeted improvements in model robustness. To generate the weak robust samples, a per-input resilient analyzer is proposed. It reorders a given dataset from most weak robust to strong robust. These weak robust samples are then employed to create adversarial and common corruption datasets using Torchattacks modules and the corruption types defined in https://github.com/hendrycks/robustness.
+
 
 # Per-input resilient Analyzer
 cd Per-input resilient analyzer
@@ -29,14 +31,21 @@ cd IN100
    https://github.com/hendrycks/robustness
 
 # Usage
-Training Configurations used in our paper:
-- For the CIFAR DATASETs same use training recipes used in the default augmix paper for fair comparisons.
-- For ImageNet100
-- ResNet-18: python IN100.py -m resnet18 <path/to/imagenet100> <path/to/imagenet100-c> --pretrained
-- Swin_V2_B: python IN100.py -m swin_v2_b <path/to/imagenet100> <path/to/imagenet100-c> --pretrained
-# Citations
-@inproceedings{hendrycksbenchmarking,
-  title={Benchmarking Neural Network Robustness to Common Corruptions and Perturbations},
-  author={Hendrycks, Dan and Dietterich, Thomas},
-  booktitle={International Conference on Learning Representations}
-}
+
+## Training Configurations
+
+- **CIFAR Datasets**  
+  Use the same training recipes as the [AugMix paper](https://arxiv.org/abs/1912.02781) for fair comparison.
+
+- **ImageNet100**  
+  - **ResNet-18**  
+    ```bash
+    python IN100.py -m resnet18 <path/to/imagenet100> <path/to/imagenet100-c> --pretrained
+    ```  
+
+  - **Swin_V2_B**  
+    ```bash
+    python IN100.py -m swin_v2_b <path/to/imagenet100> <path/to/imagenet100-c> --pretrained
+    ```  
+
+
