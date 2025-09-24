@@ -1,7 +1,7 @@
 __pycache__
 .ipynb_checkpoints/*
 debug.log
-
+*.ipynb
 build/*
 _build
 dist/*
