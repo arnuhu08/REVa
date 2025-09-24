@@ -1,7 +1,7 @@
 # [REVa (Robustness Enhancement via Validation)](https://arxiv.org/abs/2509.19197)
 ![Journal Framework](https://github.com/arnuhu08/REVa/blob/main/pictures%20/JournalFramework.png)
 # Introduction
-We introduce REVa, a two-part enhancement procedure for deep learning classifiers. First, it evaluates models on adversarial and corruption datasets generated from weak robust samples. Then, it uses the evaluation outcomes to guide targeted improvements in model robustness. To generate the weak robust samples, a per-input resilient analyzer is proposed. It reorders a given dataset from most weak robust to strong robust. These weak robust samples are then employed to create adversarial and common corruption datasets using Torchattacks modules and the corruption types defined in https://github.com/hendrycks/robustness.
+This repository is the implementtion of REVA, [A Validation Strategy for Deep Learning Models: Evaluating and Enhancing Robustness](https://arxiv.org/abs/2509.19197). We introduce REVa, a two-part enhancement procedure for deep learning classifiers. First, it evaluates models on adversarial and corruption datasets generated from weak robust samples. Then, it uses the evaluation outcomes to guide targeted improvements in model robustness. To generate the weak robust samples, a per-input resilient analyzer is proposed. It reorders a given dataset from most weak robust to strong robust. These weak robust samples are then employed to create adversarial and common corruption datasets using Torchattacks modules and the corruption types defined in https://github.com/hendrycks/robustness.
 
 
 # Per-Input Resilient Analyzer
