@@ -6,7 +6,10 @@ This repository is the implementtion of REVa, [A Validation Strategy for Deep Le
 
 # Per-Input Resilient Analyzer
 
+Clone this repository and
+```
 cd Per-input-resilient-analyzer
+```
 
 - For CIFAR dataset:  
   1. Train the preferred model architecture using `train.py`.  
