@@ -7,7 +7,8 @@ If you find this framework useful, please cite our work:
 ```
 @misc{nuhu2025validationstrategydeeplearning,
       title={A Validation Strategy for Deep Learning Models: Evaluating and Enhancing Robustness}, 
-      author={Abdul-Rauf Nuhu and Parham Kebria and Vahid Hemmati and Benjamin Lartey and Mahmoud Nabil Mahmoud and Abdollah Homaifar and Edward Tunstel},
+      author={Abdul-Rauf Nuhu and Parham Kebria and Vahid Hemmati and Benjamin Lartey and
+      Mahmoud Nabil Mahmoud and Abdollah Homaifar and Edward Tunstel},
       year={2025},
       eprint={2509.19197},
       archivePrefix={arXiv},
