@@ -12,9 +12,7 @@ models/*
 MENIFEST.in
 setup.cfg
 _commit.bat
-
 autoattack/*
-
 demo/_*
 demo/data/*
 demo/models/*
