@@ -57,7 +57,7 @@ def create_model(num_classes):
 net_base = create_model(100)
 net_base = torch.nn.DataParallel(net_base).cuda()
 cudnn.benchmark = True
-checkpoint =  torch.load('/home/abdulrauf/Desktop/augmix/snapshots/IN100checkpoint.pth.tar')
+checkpoint =  torch.load('/PATH/TO/augmix/snapshots/IN100checkpoint.pth.tar')
 net_base.load_state_dict(checkpoint['state_dict'])
 
 
@@ -65,7 +65,7 @@ net_base.load_state_dict(checkpoint['state_dict'])
 # net = ResNet_Model('resnet18', 100)
 # net = torch.nn.DataParallel(net).cuda()
 # cudnn.benchmark = True
-# checkpoint =  torch.load('/home/abdulrauf/Desktop/augmix/snapshots/IN100checkpoint.pth.tar')
+# checkpoint =  torch.load('/PATH/TO/augmix/snapshots/IN100checkpoint.pth.tar')
 # net.load_state_dict(checkpoint['state_dict'])
 
 def image_folder_custom_label(root, transform, idx2label) :
@@ -100,7 +100,7 @@ def get_imagenet_data():
     STD = [0.229, 0.224, 0.225]
 
     # Load ImageNet class labels from a .txt file instead of JSON
-    idx2label = load_labels_from_txt("/home/abdulrauf/Desktop/ImageNet-100-Pytorch/IN100.txt")
+    idx2label = load_labels_from_txt("/PATH/TO/ImageNet-100-Pytorch/IN100.txt")
 
     # Define transformation pipeline
     transform = transforms.Compose([
