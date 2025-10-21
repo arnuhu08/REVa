@@ -31,12 +31,16 @@ cd Per-input-resilient-analyzer
      ```
 
 # CIFAR Folder
+```
 cd CIFAR  
+```
 1. Contains scripts for reproducing results of REVa-enhanced models on CIFAR datasets.  
 2. To generate adversarial datasets for training REVa-enhanced models, run the notebook `AdversarialDatasetGeneration.ipynb` in the `adversarial-attacks-pytorch` folder.  
 
 # IN100 Folder
-cd IN100  
+```
+cd IN100
+```
 1. Contains scripts for reproducing results of REVa, AugMix, and the standard method on ImageNet100.  
 2. To generate adversarial datasets for training REVa-enhanced models, run the notebook `AdversarialDatasetGeneration.ipynb` in the `adversarial-attacks-pytorch` folder.  
 
