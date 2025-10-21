@@ -6,10 +6,22 @@ This repository is the implementtion of REVa, [A Validation Strategy for Deep Le
 
 # Per-Input Resilient Analyzer
 
-Clone this repository and
-```
-cd Per-input-resilient-analyzer
-```
+## Setup
+
+### Requirements
+- numpy >= 1.15.0  
+- Pillow >= 6.1.0  
+- torch == 2.1.0  
+- torchvision >= 0.16.0  
+
+1. Clone this repository and install PyTorch and the required Python libraries:  
+    ```bash
+    conda env create -f REVaEnv.yml
+    ```
+2. Download CIFAR-10-C, CIFAR-100-C and ImageNet-C datasets from [here](https://github.com/hendrycks/robustness).
+    ```
+    cd Per-input-resilient-analyzer
+    ```
 
 - For CIFAR dataset:  
   1. Train the preferred model architecture using `train.py`.  
@@ -30,32 +42,19 @@ cd Per-input-resilient-analyzer
      python IN100Stability.py
      ```
 
-# CIFAR Folder
+## CIFAR Folder
 ```
 cd CIFAR  
 ```
 1. Contains scripts for reproducing results of REVa-enhanced models on CIFAR datasets.  
 2. To generate adversarial datasets for training REVa-enhanced models, run the notebook `AdversarialDatasetGeneration.ipynb` in the `adversarial-attacks-pytorch` folder.  
 
-# IN100 Folder
+## IN100 Folder
 ```
 cd IN100
 ```
 1. Contains scripts for reproducing results of REVa, AugMix, and the standard method on ImageNet100.  
 2. To generate adversarial datasets for training REVa-enhanced models, run the notebook `AdversarialDatasetGeneration.ipynb` in the `adversarial-attacks-pytorch` folder.  
-
-# Requirements
-- numpy >= 1.15.0  
-- Pillow >= 6.1.0  
-- torch == 2.1.0  
-- torchvision >= 0.16.0  
-
-# Setup
-1. Install PyTorch and the required Python libraries:  
-   ```bash
-   conda env create -f REVaEnv.yml
-2. Down CIFAR-10-C, CIFAR-100-C and ImageNet-C datasets from the following link:
-   https://github.com/hendrycks/robustness
 
 # Usage
 
