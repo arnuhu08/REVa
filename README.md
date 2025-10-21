@@ -13,6 +13,7 @@ This repository is the implementtion of REVa, [A Validation Strategy for Deep Le
 - Pillow >= 6.1.0  
 - torch == 2.1.0  
 - torchvision >= 0.16.0  
+- tensorflow >= 2.0
 
 1. Clone this repository and install PyTorch and the required Python libraries:  
     ```bash
