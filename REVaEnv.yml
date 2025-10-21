@@ -1,10 +1,12 @@
 name:
   REVa
 channels:
-  conda-forge
+  - conda-forge
 
-pip:
-  numpy=1.15.0
-  Pillow=6.1.0
-  torch=2.1.0
-  torchvision=0.16.0
+dependencies:
+  - pip
+  - pip:
+    - numpy==1.15.0
+    - Pillow==6.1.0
+    - torch==2.1.0
+    - torchvision==0.16.0
