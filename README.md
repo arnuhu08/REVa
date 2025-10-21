@@ -18,7 +18,7 @@ This repository is the implementtion of REVa, [A Validation Strategy for Deep Le
     ```bash
     conda env create -f REVaEnv.yml
     ```
-2. Download CIFAR-10-C, CIFAR-100-C and ImageNet-C datasets from [here](https://github.com/hendrycks/robustness).
+2. Download CIFAR-10-C, CIFAR-100-C, and ImageNet-C datasets from [here](https://github.com/hendrycks/robustness).
     ```
     cd Per-input-resilient-analyzer
     ```
@@ -83,6 +83,7 @@ cd IN100
     1. Download the **ImageNet-1K** and **ImageNet-C** datasets from their official sources.  
     2. Follow the procedure in the linked repository to generate **ImageNet-100** and **ImageNet-100-C**.  
 
+# Reference
 If you find this framework useful, please cite our work:
 ```
 @misc{nuhu2025validationstrategydeeplearning,
