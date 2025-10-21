@@ -19,8 +19,8 @@ def get_imagenet_data():
         transforms.Normalize(mean=MEAN, std=STD)
     ])
     imagnet_data = image_folder_custom_label(root='./data/imagenet', 
-                                             transform=transform,
-                                             idx2label=idx2label)
+                                            transform=transform,
+                                            idx2label=idx2label)
     data_loader = torch.utils.data.DataLoader(imagnet_data, batch_size=1, shuffle=False)
     print("Used normalization: mean=", MEAN, "std=", STD)
     return iter(data_loader).next()
@@ -53,7 +53,7 @@ def image_folder_custom_label(root, transform, idx2label) :
         label2idx[item] = i
     
     new_data = dsets.ImageFolder(root=root, transform=transform, 
-                                 target_transform=lambda x : idx2label.index(old_classes[x]))
+                                target_transform=lambda x : idx2label.index(old_classes[x]))
     new_data.classes = idx2label
     new_data.class_to_idx = label2idx
 
