@@ -33,8 +33,8 @@ model = tf.keras.models.Sequential([
 
 # Compile the model
 model.compile(optimizer='adam',
-              loss='categorical_crossentropy',
-              metrics=['accuracy'])
+            loss='categorical_crossentropy',
+            metrics=['accuracy'])
 
 # Train the model
 # model.fit(x_train, y_train, batch_size=32, epochs=10, validation_data=(x_test, y_test))
@@ -76,19 +76,19 @@ d['pgd'] = PGD
 convert_img = trn.Compose([trn.ToTensor(), trn.ToPILImage()])
 
 for method_name in d.keys():
-     print(f'Creating corruption for {method_name} perturbation')
-     cifar_adv, labels = [], []
+    print(f'Creating corruption for {method_name} perturbation')
+    cifar_adv, labels = [], []
 
-     for epsilon in [2.0/255, 4.0/255, 6.0/255, 8.0/255, 16.0/255]:
+    for epsilon in [2.0/255, 4.0/255, 6.0/255, 8.0/255, 16.0/255]:
         corruption = lambda clean_img: d[method_name](model, clean_img, epsilon)
         for img, label in zip(x_test, ytest):
             labels.append(label.squeeze())
             cifar_adv.append(np.uint8(corruption(convert_img(img))))
-     cifar_adv=np.squeeze(cifar_adv)
-     np.save('C:/Users/Abdul-Rauf/Desktop/adversarial_corruption/'+ d[method_name].__name__ + '.npy',
+    cifar_adv=np.squeeze(cifar_adv)
+    np.save('PATH/TO/adversarial_corruption/'+ d[method_name].__name__ + '.npy',
             np.array(cifar_adv).astype(np.uint8))
     
-     np.save('C:/Users/Abdul-Rauf/Desktop/adversarial_corruption/labels.npy',
+    np.save('PATH/TO/adversarial_corruption/labels.npy',
             np.array(labels).astype(np.uint8))
 
 

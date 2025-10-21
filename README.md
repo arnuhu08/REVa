@@ -61,7 +61,7 @@ cd IN100
 ## Training Configurations
 
 - **CIFAR Datasets**  
-  Use the same training recipes as the [AugMix paper](https://arxiv.org/abs/1912.02781) for fair comparison.
+  Use the same training recipes as [AugMix](https://arxiv.org/abs/1912.02781) for fair comparison.
 
 - **ImageNet100**  
   - **ResNet-18**  
