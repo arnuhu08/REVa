@@ -67,19 +67,19 @@ def test(net, test_loader):
 net_base = create_model(100)
 net_base = torch.nn.DataParallel(net_base).cuda()
 cudnn.benchmark = True
-checkpoint =  torch.load('/home/abdulrauf/Desktop/augmix/snapshots/IN100checkpoint.pth.tar')
+checkpoint =  torch.load('/PATH/TO/augmix/snapshots/IN100checkpoint.pth.tar')
 net_base.load_state_dict(checkpoint['state_dict'])
 
 net_AX = create_model(100)
 net_AX = torch.nn.DataParallel(net_AX).cuda()
 cudnn.benchmark = True
-checkpoint =  torch.load('/home/abdulrauf/Desktop/augmix/snapshots/AXcheckpoint.pth.tar')
+checkpoint =  torch.load('/PATH/TO/augmix/snapshots/AXcheckpoint.pth.tar')
 net_AX.load_state_dict(checkpoint['state_dict'])
 
 net_REVa = create_model(100)
 net_REVa = torch.nn.DataParallel(net_REVa).cuda()
 cudnn.benchmark = True
-checkpoint =  torch.load('/home/abdulrauf/Desktop/augmix/snapshots/REVacheckpoint_{args.model}.pth.tar')
+checkpoint =  torch.load('/PATH/TO/augmix/snapshots/REVacheckpoint_{args.model}.pth.tar')
 net_REVa.load_state_dict(checkpoint['state_dict'])
 
 # Assuming PREPROCESSINGS['Res256Crop224'] is a predefined transformation
@@ -150,7 +150,7 @@ def test_data_loader(
 
     return test_loader
 
-x_test, y_test = load_imagenet(n_examples=5000, data_dir= '/media/abdulrauf/c6e51537-17d9-4e8c-bfac-00f1c3719a0b/IN100')
+x_test, y_test = load_imagenet(n_examples=5000, data_dir= 'PATH/TO/IN100')
 
 # Assessing the models performances on adversarial generation types
 atk = torchattacks.PGD(net_base, eps=4/255, alpha=1/225, steps=40, random_start=True)
@@ -182,7 +182,7 @@ def generate_adversarial_dataset_in_batches(x_test, y_test, atk, batch_size=50):
     return adv_images
 
 adv_images = generate_adversarial_dataset_in_batches(x_test, y_test, atk, batch_size=32)
-val_loader = test_data_loader(n_examples=100, data_dir= '/media/abdulrauf/c6e51537-17d9-4e8c-bfac-00f1c3719a0b/IN100')
+val_loader = test_data_loader(n_examples=100, data_dir= '/PATH/TO/IN100')
 # val_loader.data =  adv_images
 # val_loader.targets = y_test
 
@@ -404,4 +404,5 @@ corruption_array = np.array(corruption_types)
 print(f"these are the corruption error {100-corruption_array}")
 averages = corruption_array.mean(axis=1)
 result = np.round(100 - averages, 7)
+
 print(result)
