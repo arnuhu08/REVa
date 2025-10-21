@@ -1,11 +1,29 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import requests
 import json
 
 import torch
 import torchvision
 import torchvision.datasets as dsets
 import torchvision.transforms as transforms
+
+
+def safe_get(url, *, allow_redirects=True, verify=True, auth=None, timeout=15, **kwargs):
+    """
+    Make a single GET request in an isolated session that:
+        - does not read .netrc or environment proxy settings (trust_env=False)
+        - avoids reusing a session mutated by verify=False
+        - requires explicit auth if needed
+    Usage: response = safe_get("https://example.com", verify=True)
+    """
+    session = requests.Session()
+    session.trust_env = False  # do not pull credentials or proxies from env/.netrc
+    try:
+        resp = session.get(url, allow_redirects=allow_redirects, verify=verify, auth=auth, timeout=timeout, **kwargs)
+        return resp
+    finally:
+        session.close()
 
 def get_imagenet_data():
     MEAN = [0.485, 0.456, 0.406]
