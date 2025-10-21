@@ -33,8 +33,8 @@ parser.add_argument('--epochs', default=90, type=int, metavar='N',
                     help='number of total epochs to run')
 
 parser.add_argument('--num-classes', default=10,
-		     type = int,
-		     help = 'number of classes')
+                    type=int,
+                    help= 'number of classes')
 
 parser.add_argument(
     '--learning-rate',
@@ -84,6 +84,22 @@ parser.add_argument(
 
 args = parser.parse_args()
 
+'''
+  from models import VGG
+  from torchvision.models import vgg16
+
+
+  from torchvision.models import resnet18, resnet34
+  from models.resnet import ResNet18, ResNet34
+
+
+  from models.densenet import densenet_cifar
+  from models import densenet_cifar
+
+
+  from torchvision import models
+'''
+
 all_classifiers  = {
 	"vgg16" :  VGG("VGG16"),
 	"resnet18": ResNet18(),
@@ -94,8 +110,7 @@ all_classifiers  = {
 
 def get_lr(step, total_steps, lr_max, lr_min):
   """Compute learning rate according to cosine annealing schedule."""
-  return lr_min + (lr_max - lr_min) * 0.5 * (1 +
-                                             np.cos(step / total_steps * np.pi))
+  return lr_min + (lr_max - lr_min) * 0.5 * (1 + np.cos(step / total_steps * np.pi))
 
 
 def train(net, train_loader, optimizer, scheduler):
@@ -118,7 +133,7 @@ def train(net, train_loader, optimizer, scheduler):
       print('Train Loss {:.3f}'.format(loss_ema))
 
   return loss_ema
- 
+
 def test(net, test_loader):
   """Evaluate network on given dataset."""
   net.eval()
@@ -147,9 +162,9 @@ def main():
 
   train_transform = transforms.Compose(
       [transforms.RandomHorizontalFlip(),
-       transforms.RandomCrop(32, padding=4),
-       preprocess
-       ])
+      transforms.RandomCrop(32, padding=4),
+      preprocess
+      ])
 
   test_transform = preprocess
 
@@ -184,11 +199,11 @@ def main():
     net = all_classifiers[args.model]
 
   optimizer = torch.optim.SGD(
-     net.parameters(),
-     args.learning_rate,
-     momentum =  args.momentum,
-     weight_decay = args.decay,
-     nesterov=True)
+                              net.parameters(),
+                              args.learning_rate,
+                              momentum =  args.momentum,
+                              weight_decay = args.decay,
+                              nesterov=True)
 
 # Distribute model across all visible GPUs
   net = torch.nn.DataParallel(net).cuda()
@@ -204,7 +219,6 @@ def main():
       net.load_state_dict(checkpoint['state_dict'])
       optimizer.load_state_dict(checkpoint['optimizer'])
       print('Model restored from epoch:', start_epoch)
-  
 
   scheduler = torch.optim.lr_scheduler.LambdaLR(
       optimizer,
@@ -239,17 +253,17 @@ def main():
     is_best = test_acc > best_acc
     best_acc = max(test_acc, best_acc)
     checkpoint = {
-         'epoch': epoch,
-         'dataset': args.dataset,
-         'model': args.model, 
-         'state_dict': net.state_dict(),
-         'best_acc':best_acc,
-         'optimizer': optimizer.state_dict(),} 
+                'epoch': epoch,
+                'dataset': args.dataset,
+                'model': args.model, 
+                'state_dict': net.state_dict(),
+                'best_acc':best_acc,
+                'optimizer': optimizer.state_dict(),} 
 
     save_path = os.path.join(args.save, 'checkpoint.pth.tar')
     torch.save(checkpoint, save_path)
     if is_best:
-       shutil.copyfile(save_path, os.path.join(args.save, 'model_best.pth.tar'))
+      shutil.copyfile(save_path, os.path.join(args.save, 'model_best.pth.tar'))
 
     with open(log_path, 'a') as f:
       f.write('%03d,%05d,%0.6f,%0.5f,%0.2f\n' % (
@@ -258,17 +272,12 @@ def main():
           train_loss_ema,
           test_loss,
           100 - 100. * test_acc,))
-     
+
     print(
         'Epoch {0:3d} | Time {1:5d} | Train Loss {2:.4f} | Test Loss {3:.3f} |'
         ' Test Error {4:.2f}'
         .format((epoch + 1), int(time.time() - begin_time), train_loss_ema,
                 test_loss, 100 - 100. * test_acc))
-     
+
 if __name__ == '__main__':
   main()
-   
-   
-  
-
-
