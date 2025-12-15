@@ -8,10 +8,10 @@ import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
 from torchvision import transforms, datasets, models
 from torch.utils.data import DataLoader
-import datetime
+import time
 
 # ---------- Configuration ----------
-imagenet_path = "/data/imagenet_dataset/train"
+imagenet_path = "<path to the IN100 training dataset>"
 dataset_split = "train"  # Change to "val" for validation set
 run_num = 1
 batch_size = 32 # 64
@@ -33,57 +33,80 @@ transform = transforms.Compose([
     transforms.CenterCrop(224),
     transforms.ToTensor(),
 ])
+def create_model(model_name, num_classes):
+    """Creates a torchvision model (CNN or Transformer) and modifies the classification head."""
 
-# model_names = ["vgg13", "vgg19", "vgg19_bn", "resnet101_V1", "resnet101", "resnet152_V1","resnet152",
-#            "densenet121", "densenet161", "densenet169", "densenet201", "swin_t", "swin_v2_t", 
-#            "swin_b", "swin_v2_b"]
+    model = models.__dict__[model_name]()
 
-model_names = ["resnet152"]
+    # Try to identify and replace the classification head
+    if hasattr(model, 'fc') and isinstance(model.fc, torch.nn.Linear):
+        # For models like ResNet
+        model.fc = torch.nn.Linear(model.fc.in_features, num_classes)
+
+        for param in model.parameters():
+            param.requires_grad = False
+        for param in model.fc.parameters():
+            param.requires_grad = True
+
+    elif hasattr(model, 'head') and isinstance(model.head, torch.nn.Linear):
+        # For transformer models like swin_v2_b, vit_b_16, etc.
+        model.head = torch.nn.Linear(model.head.in_features, num_classes)
+
+        for param in model.parameters():
+            param.requires_grad = False
+        for param in model.head.parameters():
+            param.requires_grad = True
+
+    else:
+        raise ValueError(f"Model '{'swin_v2_b'}' does not have a recognizable classification head ('.fc' or '.head').")
+
+    return model
+
+model_names = ["swin_v2_b"]
 
 # ---------- Model ----------
 for model_name in model_names:
-    # model_name = "resnet50"  # Change this to your desired model
     print(f"Loading pretrained {model_name} on multiple GPUs...")
     if model_name == "resnet101_V1":
-        model = models.resnet101(weights=models.ResNet101_Weights.IMAGENET1K_V1)
+        model = create_model(model_name, 100)
     elif model_name == "resnet101":
-        model = models.resnet101(weights=models.ResNet101_Weights.DEFAULT)
+        model = create_model(model_name, 100)
     elif model_name == "resnet50_V1":
-        model = models.resnet50(weights=models.ResNet50_Weights.IMAGENET1K_V1)
+        model = create_model(model_name, 100)
     elif model_name == "resnet50":
-        model = models.resnet50(weights=models.ResNet50_Weights.DEFAULT)
+        model = create_model(model_name, 100)
     elif model_name == "resnet34":
-        model = models.resnet34(weights=models.ResNet34_Weights.DEFAULT)
+        model = create_model(model_name, 100)
     elif model_name == "resnet18":
-        model = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
+        model = create_model(model_name, 100)
     elif model_name == "resnet152_V1":
-        model = models.resnet152(weights=models.ResNet152_Weights.IMAGENET1K_V1)
+        model = create_model(model_name, 100)
     elif model_name == "resnet152":
-        model = models.resnet152(weights=models.ResNet152_Weights.DEFAULT)
+        model = create_model(model_name, 100)
     elif model_name == 'vgg13':
-        model = models.vgg13(weights=models.VGG13_Weights.DEFAULT)
+        model = create_model(model_name, 100)
     elif model_name == 'vgg13_bn':
-        model = models.vgg13_bn(weights=models.VGG13_BN_Weights.DEFAULT)
+        model = create_model(model_name, 100)
     elif model_name == 'vgg19':
-        model = models.vgg19(weights=models.VGG19_Weights.DEFAULT)
+        model = create_model(model_name, 100)
     elif model_name == 'vgg19_bn':
-        model = models.vgg19_bn(weights=models.VGG19_BN_Weights.DEFAULT)
+        model = create_model(model_name, 100)
     elif model_name == 'densenet121':
-        model = models.densenet121(weights=models.DenseNet121_Weights.DEFAULT)
+        model = create_model(model_name, 100)
     elif model_name == 'densenet161':
-        model = models.densenet161(weights=models.DenseNet161_Weights.DEFAULT)
+        model = create_model(model_name, 100)
     elif model_name == 'densenet169':
-        model = models.densenet169(weights=models.DenseNet169_Weights.DEFAULT)
+        model = create_model(model_name, 100)
     elif model_name == 'densenet201':
-        model = models.densenet201(weights=models.DenseNet201_Weights.DEFAULT)
+        model = create_model(model_name, 100)
     elif model_name == 'swin_t':
-        model = models.swin_t(weights=models.Swin_T_Weights.IMAGENET1K_V1)
+        model = create_model(model_name, 100)
     elif model_name == 'swin_v2_t':
-        model = models.swin_v2_t(weights=models.Swin_V2_T_Weights.IMAGENET1K_V1)
+        model = create_model(model_name, 100)
     elif model_name == 'swin_b':
-        model = models.swin_b(weights=models.Swin_B_Weights.IMAGENET1K_V1)
+        model = create_model(model_name, 100)
     elif model_name == 'swin_v2_b':
-        model = models.swin_v2_b(weights=models.Swin_V2_B_Weights.IMAGENET1K_V1)
+        model = create_model(model_name, 100)
     else:
         raise ValueError(f"Unsupported model: {model_name}")
 
@@ -113,7 +136,7 @@ for model_name in model_names:
         start_idx = 0
         stable_indices, unstable_indices = [], []
         misclassification_counts = []
-
+    
     # ---------- Model Setup ----------
     if torch.cuda.device_count() > 1:
         print(f"Using {torch.cuda.device_count()} GPUs")
@@ -122,8 +145,8 @@ for model_name in model_names:
     model = model.to(device)  # Important: move after DataParallel wrapping
     model.eval()
     cudnn.benchmark = True
-
-
+    checkpoint =  torch.load('<path to the saved model checkpoints>')
+    model.load_state_dict(checkpoint['state_dict'])
 
     # ---------- Dataset ----------
     print("Loading ImageNet dataset...")
@@ -147,6 +170,7 @@ for model_name in model_names:
 
     # ---------- Evaluation ----------
     print("Starting robustness evaluation...")
+    start_time = time.time()
 
     use_clean_data_only = False  # Set to True to test only clean images
     epoch_risk = 0.0
@@ -247,7 +271,7 @@ for model_name in model_names:
                         # "empirical_risk": empirical_risk,
                         "misclassification_counts": misclassification_counts
                     }, f)
-
+    print(f"time take for the per-input resilient analysis on {model_name}  is {time.time()-start_time}")
     # ---------- Save Final Results ----------
     if dataset_split == "train":
         print(f"Saving stable and unstable index files for the '{dataset_split}' dataset and model '{model_name}'...")
