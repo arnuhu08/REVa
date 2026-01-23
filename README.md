@@ -105,8 +105,20 @@ This repository is the implementtion of REVa, [A Validation Strategy for Deep Le
 
 If you find this framework useful, please cite our work:
 
-```bash
-@misc{nuhu2025validationstrategydeeplearning,
+```bibtex
+@article{nuhu2025validation,
+      title={A Validation Strategy for Deep Learning Models: Evaluating and Enhancing Robustness}, 
+      author={Abdul-Rauf Nuhu and Parham Kebria and Vahid Hemmati and Benjamin Lartey and
+      Mahmoud Nabil Mahmoud and Abdollah Homaifar and Edward Tunstel},
+      journal={IEEE Open Journal of Computer Society},
+      publisher={IEEE Computer Society},
+      year={2026},
+      volume={7},
+      pages={276-289},
+      url={https://doi.ieeecomputersociety.org/10.1109/OJCS.2025.3650722}, 
+}
+
+@misc{nuhu2025validation,
       title={A Validation Strategy for Deep Learning Models: Evaluating and Enhancing Robustness}, 
       author={Abdul-Rauf Nuhu and Parham Kebria and Vahid Hemmati and Benjamin Lartey and
       Mahmoud Nabil Mahmoud and Abdollah Homaifar and Edward Tunstel},
