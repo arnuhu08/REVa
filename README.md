@@ -4,13 +4,13 @@
 
 ## Introduction
 
-This repository is the implementtion of REVa, [A Validation Strategy for Deep Learning Models: Evaluating and Enhancing Robustness](https://arxiv.org/abs/2509.19197). REVa is a two-part enhancement procedure for deep learning classifiers. First, it evaluates models on adversarial and corruption datasets generated from weak robust samples. Then, it uses the evaluation outcomes to guide targeted improvements in model robustness. To generate the weak robust samples, a per-input resilient analyzer is proposed. It reorders a given dataset from most weak robust to strong robust. These weak robust samples are then employed to create adversarial and common corruption datasets using Torchattacks modules and the corruption types defined in [here](https://github.com/hendrycks/robustness).
+This repository is the implementtion of REVa, [A Validation Strategy for Deep Learning Models: Evaluating and Enhancing Robustness](https://doi.ieeecomputersociety.org/10.1109/OJCS.2025.3650722). REVa is a two-part enhancement procedure for deep learning classifiers. First, it evaluates models on adversarial and corruption datasets generated from weak robust samples. Then, it uses the evaluation outcomes to guide targeted improvements in model robustness. To generate the weak robust samples, a per-input resilient analyzer is proposed. It reorders a given dataset from most weak robust to strong robust. These weak robust samples are then employed to create adversarial and common corruption datasets using Torchattacks modules and the corruption types defined in [here](https://github.com/hendrycks/robustness).
 
 ## Per-Input Resilient Analyzer
 
 ## Setup
 
-## Requirements
+### Requirements
 
 - numpy >= 1.15.0  
 - Pillow >= 6.1.0  
@@ -101,9 +101,11 @@ This repository is the implementtion of REVa, [A Validation Strategy for Deep Le
     1. Download the **ImageNet-1K** and **ImageNet-C** datasets from their official sources.  
     2. Follow the procedure in the linked repository to generate **ImageNet-100** and **ImageNet-100-C**.  
 
-# Reference
+## Reference
+
 If you find this framework useful, please cite our work:
-```
+
+```bash
 @misc{nuhu2025validationstrategydeeplearning,
       title={A Validation Strategy for Deep Learning Models: Evaluating and Enhancing Robustness}, 
       author={Abdul-Rauf Nuhu and Parham Kebria and Vahid Hemmati and Benjamin Lartey and
@@ -114,6 +116,4 @@ If you find this framework useful, please cite our work:
       primaryClass={cs.LG},
       url={https://arxiv.org/abs/2509.19197}, 
 }
-```    
-
-
+```
