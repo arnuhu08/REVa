@@ -1,5 +1,8 @@
-#Roadmap: implement a function for generating the perturbed images
-#the per-input resilient analyzer function
+'''
+    Roadmap: implement a function for generating the perturbed images
+    the per-input resilient analyzer function
+'''
+
 import argparse
 import os
 import pickle
@@ -34,8 +37,8 @@ parser.add_argument('-m', '--model', metavar='ARCH', default='vgg16',
                     help='choose architecture.')
 
 parser.add_argument('--num-classes', default=10,
-		     type = int,
-		     help = 'number of classes')
+                    type = int,
+                    help = 'number of classes')
 
 parser.add_argument(
     '--batch-size', '-b', type=int, default=128, help='Batch size.')
@@ -77,7 +80,7 @@ class NeighborsDataset(torch.utils.data.Dataset):
         self.preprocess = preprocess
         self.epsilon = epsilon
         self.sample_size = sample_size
-      
+
     def __getitem__(self, idx):
         image, label = self.dataset[idx]
         neighbors = neighbors_generation(image, self.preprocess, self.sample_size, self.epsilon)
@@ -100,11 +103,12 @@ def test(net, data):
     # misprediction_count = 0.0
 
     test_loader = torch.utils.data.DataLoader(
-             data,
-             batch_size=args.eval_batch_size,
-             shuffle=False,
-             num_workers=args.num_workers,
-           pin_memory=False)
+                            data,
+                            batch_size=args.eval_batch_size,
+                            shuffle=False,
+                            num_workers=args.num_workers,
+                            pin_memory=False
+                        )
 
     with torch.no_grad():
         for batch in test_loader:
@@ -154,7 +158,7 @@ def test(net, data):
                 
             elapsed_time = time.time() - start_time
             print(f'Execution time for a batch: {elapsed_time:.3f} seconds')
-   
+
     # Move new_data to CPU and convert to list of numpy arrays
     new_data_cpu = [tensor.cpu().numpy() for tensor in new_data]
     final_time = time.time()-start_time
