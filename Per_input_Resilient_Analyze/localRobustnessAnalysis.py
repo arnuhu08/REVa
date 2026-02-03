@@ -1,19 +1,16 @@
-#Roadmap: implement a function for generating the perturbed images
-#the per-input resilient analyzer function
+'''
+    Per-input resilient analyzer implementation.
+    Generates perturbed images and analyzes model robustness on local neighborhoods.
+'''
+
 import argparse
 import os
 import pickle
-import random
-import shutil
-import time 
-import warnings
-from models import*
+import time
+# 3rd party imports
+from models import *
 import numpy as np
-import transformation
-from PIL import Image
-from itertools import product
-from collections import defaultdict
-
+# torch imports 
 import torch
 import torch.backends.cudnn as cudnn
 import torch.nn.functional as F
@@ -34,8 +31,8 @@ parser.add_argument('-m', '--model', metavar='ARCH', default='vgg16',
                     help='choose architecture.')
 
 parser.add_argument('--num-classes', default=10,
-		     type = int,
-		     help = 'number of classes')
+                    type = int,
+                    help = 'number of classes')
 
 parser.add_argument(
     '--batch-size', '-b', type=int, default=128, help='Batch size.')
@@ -58,16 +55,25 @@ args = parser.parse_args()
 
 
 def neighbors_generation(image, preprocess, samples_size, epsilon):
-    """neighbors generation function
-    it generate n_k samples for each data instance"""
-    new_images = torch.zeros((samples_size, 3,32,32))
+    """Generate neighbors by adding uniform random noise to the image.
+    
+    Args:
+        image: Original image tensor
+        preprocess: Preprocessing transform to apply
+        samples_size: Number of perturbed samples to generate
+        epsilon: Maximum perturbation magnitude (noise in [-epsilon, epsilon])
+    
+    Returns:
+        Tensor of perturbed images with shape (samples_size, 3, 32, 32)
+    """
+    new_images = torch.zeros((samples_size, 3, 32, 32))
     for perturbation_image in range(samples_size):
-        noise = torch.rand_like(image) * epsilon - 0.5 * epsilon
+        # Generate uniform noise in [-epsilon, epsilon]
+        noise = (torch.rand_like(image) * 2 - 1) * epsilon
         new_image = image + noise
         new_image = new_image.clamp(0, 1)
-        new_image =  (new_image.permute(1,2,0).numpy()*255).astype('uint8')
+        new_image = (new_image.permute(1, 2, 0).numpy() * 255).astype('uint8')
         new_images[perturbation_image] = preprocess(new_image)
-        # new_images[perturbation_image] = new_images[perturbation_image].clamp(0, 1)  # Torch equivalent of `np.clip`
     return new_images
 
 
@@ -77,7 +83,7 @@ class NeighborsDataset(torch.utils.data.Dataset):
         self.preprocess = preprocess
         self.epsilon = epsilon
         self.sample_size = sample_size
-      
+
     def __getitem__(self, idx):
         image, label = self.dataset[idx]
         neighbors = neighbors_generation(image, self.preprocess, self.sample_size, self.epsilon)
@@ -90,120 +96,161 @@ class NeighborsDataset(torch.utils.data.Dataset):
 
 def test(net, data):
     """
-    modified  test function to accomodate multiple neighbors for each data instance
-    Evaluate the network and compute the fraction of total samples 
-    that were mispredicted, weighted by their confidence scores.
+    Evaluate network robustness on local neighborhoods.
+    
+    For each sample, generates neighbors and computes the average confidence
+    score on mispredictions across all neighbors.
+    
+    Args:
+        net: Neural network model
+        data: NeighborsDataset containing original images and their neighbors
+    
+    Returns:
+        Tuple of (images, labels, confidence_scores) where confidence_scores
+        represent average misprediction confidence across neighbors
     """
     net.eval()
     confidence_score = []
-    new_data, labels = [],[]
-    # misprediction_count = 0.0
+    new_data, labels = [], []
 
     test_loader = torch.utils.data.DataLoader(
-             data,
-             batch_size=args.eval_batch_size,
-             shuffle=False,
-             num_workers=args.num_workers,
-           pin_memory=False)
+        data,
+        batch_size=args.eval_batch_size,
+        shuffle=False,
+        num_workers=args.num_workers,
+        pin_memory=True
+    )
 
+    total_start_time = time.time()
+    
     with torch.no_grad():
-        for batch in test_loader:
-
-            start_time = time.time()
-
+        for batch_idx, batch in enumerate(test_loader):
+            batch_start_time = time.time()
+            
             images, targets = batch
-            # print(f"the actual classes: {targets}")
-            for instance_indx in range(0,len(targets)):
+            
+            for instance_indx in range(len(targets)):
                 confi_score = []
                 images_c = images[1][instance_indx]
-                # print(f"the length of the corrupted dataset is: {len(images_c)}")
-                images_c = images_c.float()  # Convert the list of tensors into a single tensor
-                target = torch.LongTensor([targets[instance_indx].item()]*len(images_c))
+                images_c = images_c.float()
+                target = torch.LongTensor([targets[instance_indx].item()] * len(images_c))
                 images_c = images_c.cuda()
                 target = target.cuda()
-                # print(f"the shape of the neighbors is: {images_c.shape}")
-                logits = net(images_c)  # Raw predictions (logits)
-
-                # Apply softmax to get probabilities
+                
+                # Get predictions for all neighbors at once
+                logits = net(images_c)
                 probabilities = F.softmax(logits, dim=1)
-
-                # Predicted class indices
                 predicted_classes = logits.argmax(dim=1)
-
-                # print(f"predicted classes are {predicted_classes}")
-                # Compare predictions with ground truth
                 correct_predictions = predicted_classes.eq(target)
 
-                # For mispredicted samples, accumulate the confidence score
+                # Compute confidence scores for mispredictions
                 for i, correct in enumerate(correct_predictions):
-                    # Append confidence score for mispredictions; otherwise, append 0
                     confi_score.append(
                         float(probabilities[i, predicted_classes[i]]) if not correct else 0
                     )
-                # Append only the original image and target
-                confidence_score.append(sum(confi_score)/len(images_c))
-                new_data.append(images[0][instance_indx].cpu())  # Original (non-perturbed) image
-                labels.append(targets[instance_indx].cpu().item())  # Target class
-                # if not correct:  # Mispredicted sample
-                #     confidence_score.append(float(probabilities[i, predicted_classes[i]]))
-                #     new_data.append(images[0][i].cpu())
-                #     labels.append(targets[i].cpu().item())
-                # confidence_score.append(0)
-                # new_data.append(images[0][i].cpu())
-                # labels.append(targets[i].cpu().item())
                 
-            elapsed_time = time.time() - start_time
-            print(f'Execution time for a batch: {elapsed_time:.3f} seconds')
-   
-    # Move new_data to CPU and convert to list of numpy arrays
+                # Store average misprediction confidence
+                confidence_score.append(sum(confi_score) / len(images_c))
+                new_data.append(images[0][instance_indx].cpu())
+                labels.append(targets[instance_indx].cpu().item())
+                
+            batch_elapsed = time.time() - batch_start_time
+            print(f'Batch {batch_idx + 1}/{len(test_loader)}: {batch_elapsed:.3f} seconds')
+
+    # Convert to numpy arrays
     new_data_cpu = [tensor.cpu().numpy() for tensor in new_data]
-    final_time = time.time()-start_time
-    # Return fraction of total samples weighted by misprediction confidence
-    print(f'Execution time for the entire dataset: {final_time:.3f} seconds')
+    total_elapsed = time.time() - total_start_time
+    print(f'Total execution time: {total_elapsed:.2f} seconds')
+    
     return (new_data_cpu, labels, confidence_score)
 
 def main():
+    # Set random seeds for reproducibility
     torch.manual_seed(1)
     np.random.seed(1)
-
-    train_transform = transforms.ToTensor()
-    preprocess = transforms.Compose([transforms.ToTensor(), transforms.Normalize([0.5] * 3, [0.5] * 3)])
-
-    if args.dataset == 'cifar10':
-        train_data = datasets.CIFAR10('./data/cifar', train=True, transform=train_transform, download=True)
-        test_data = datasets.CIFAR10('./data/cifar', train=False, transform=preprocess, download=True)
     
+    # Check CUDA availability
+    if not torch.cuda.is_available():
+        raise RuntimeError("CUDA is not available. This script requires GPU support.")
+
+    # Define transforms
+    train_transform = transforms.ToTensor()
+    preprocess = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize([0.5] * 3, [0.5] * 3)
+    ])
+
+    # Load dataset
+    print(f"Loading {args.dataset} dataset...")
+    if args.dataset == 'cifar10':
+        train_data = datasets.CIFAR10(
+            './data/cifar', train=True, transform=train_transform, download=True
+        )
+        test_data = datasets.CIFAR10(
+            './data/cifar', train=False, transform=preprocess, download=True
+        )
+    elif args.dataset == 'cifar100':
+        train_data = datasets.CIFAR100(
+            './data/cifar', train=True, transform=train_transform, download=True
+        )
+        test_data = datasets.CIFAR100(
+            './data/cifar', train=False, transform=preprocess, download=True
+        )
+    else:
+        raise ValueError(f"Unsupported dataset: {args.dataset}")
+    
+    print(f"Dataset loaded: {len(train_data)} training samples")
     
     # Model initialization
-    all_classifiers  = {
-	"vgg16" :  VGG("VGG16"),
-	"resnet18": ResNet18(),
-	"resnet34": ResNet34(),
-    "densenet_cifar": densenet_cifar()
+    all_classifiers = {
+        "vgg16": VGG("VGG16"),
+        "resnet18": ResNet18(),
+        "resnet34": ResNet34(),
+        "densenet_cifar": densenet_cifar()
     }
     
+    if args.model not in all_classifiers:
+        raise ValueError(f"Unsupported model: {args.model}")
+    
+    print(f"Initializing model: {args.model}")
     net = all_classifiers[args.model]
     net = torch.nn.DataParallel(net).cuda()
     cudnn.benchmark = True
 
+    # Load checkpoint if provided
     if args.resume:
-        if os.path.isfile(args.resume):
-            checkpoint = torch.load(args.resume)
-            net.load_state_dict(checkpoint['state_dict'])
+        if not os.path.isfile(args.resume):
+            raise FileNotFoundError(f"Checkpoint not found: {args.resume}")
+        
+        print(f"Loading checkpoint from {args.resume}")
+        checkpoint = torch.load(args.resume)
+        net.load_state_dict(checkpoint['state_dict'])
+        print("Checkpoint loaded successfully")
+    else:
+        print("Warning: No checkpoint provided. Using randomly initialized model.")
     
+    # Robustness analysis parameters
     epsilon = 0.22
     sample_size = 50
+    
+    print(f"\nStarting robustness analysis:")
+    print(f"  Epsilon: {epsilon}")
+    print(f"  Neighbors per sample: {sample_size}")
+    print(f"  Total samples to process: {len(train_data)}\n")
+    
+    # Create neighbors dataset and analyze
     neighborsData = NeighborsDataset(train_data, preprocess, sample_size, epsilon)
     weakSample_tuples = test(net, neighborsData)
 
-    # weakRobust_samples_by_class = store_data_by_class(weakSample_tuples)
-    # strongRobust_samples_by_class = store_data_by_class(strongSample_tuples)
-
-    with open('Scores_tuple', 'wb') as f:
+    # Save results
+    output_file = 'Scores_tuple.pkl'
+    print(f"\nSaving results to {output_file}")
+    with open(output_file, 'wb') as f:
         pickle.dump(weakSample_tuples, f)
-
-    # with open('strongRobust_samples', 'wb') as f:
-    #     pickle.dump(strongRobust_samples_by_class, f)
+    
+    print(f"Analysis complete! Results saved.")
+    print(f"  Total samples analyzed: {len(weakSample_tuples[0])}")
+    print(f"  Average confidence score: {np.mean(weakSample_tuples[2]):.4f}")
 
 if __name__ == '__main__':
     main()
