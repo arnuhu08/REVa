@@ -17,7 +17,7 @@
 Currently only supports CNN and Swin Transformers training.
 
 Example usage:
-  `python imagenet.py <path/to/ImageNet> <path/to/ImageNet-C>`
+    `python IN100_orig.py <path/to/ImageNet> <path/to/ImageNet-C>`
 """
 from __future__ import print_function
 
