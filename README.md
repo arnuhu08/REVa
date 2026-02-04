@@ -106,7 +106,7 @@ This repository is the implementtion of REVa, [A Validation Strategy for Deep Le
 If you find this framework useful, please cite our work:
 
 ```bibtex
-@article{nuhu2025validation,
+@article{nuhu2026validation,
       title={A Validation Strategy for Deep Learning Models: Evaluating and Enhancing Robustness}, 
       author={Abdul-Rauf Nuhu and Parham Kebria and Vahid Hemmati and Benjamin Lartey and
       Mahmoud Nabil Mahmoud and Abdollah Homaifar and Edward Tunstel},
