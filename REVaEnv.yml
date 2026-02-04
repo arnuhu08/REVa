@@ -12,3 +12,4 @@ dependencies:
     - torchvision==0.16.0
     - matplotlib>=3.5.0
     - tensorflow==2.13.0
+    - cleverhans==4.1.0
