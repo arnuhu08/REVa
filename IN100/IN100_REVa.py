@@ -27,7 +27,6 @@ from torchvision import transforms
 from torch.utils.data import Subset
 from multiprocessing import Pool
 from third_party.WideResNet_pytorch.wideresnet import WideResNet
-from networks.resnet import ResNet_Model
 
 def process_image(img):
     return Image.fromarray(img)
@@ -40,8 +39,8 @@ augmentations.IMAGE_SIZE = 224
 num_classes = 100
 
 model_names = sorted(name for name in models.__dict__
-                     if name.islower() and not name.startswith('__') and
-                     callable(models.__dict__[name]))
+                    if name.islower() and not name.startswith('__') and
+                    callable(models.__dict__[name]))
 
 parser = argparse.ArgumentParser(description='Trains an ImageNet Classifier')
 parser.add_argument(
@@ -138,13 +137,13 @@ parser.add_argument(
 #adversarial examples parameters settings:
 parser.add_argument(
     '--epsilon',
-    type=int,
+    type=float,
     default=4/255,
     help='The magnitude of perturbation.')
 
 parser.add_argument(
     '--alpha',
-    type=int,
+    type=float,
     default=1/255,
     help='The magnitude of step size.')
 
@@ -256,7 +255,7 @@ class adversarial_generator(torch.utils.data.Dataset):
         x = self.dataset[i]
         y = self.label[i]
         x = Image.fromarray(x)
-        return x
+        return x, y
     
     def __len__(self):
         return len(self.dataset)
@@ -273,8 +272,8 @@ class AugMixDataset(torch.utils.data.Dataset):
 
   def __getitem__(self, i):
     x, y = self.dataset[i]
-    x_adv =  self.adv_dataset[i]
-     
+    x_adv, y_adv = self.adv_dataset[i]  # Get both x and y from adversarial dataset
+
     if self.no_jsd:
       return aug(x, self.preprocess), y
     else:
@@ -300,7 +299,10 @@ def train(net, train_loader, optimizer):
     # Compute data loading time
     data_time = time.time() - end
     optimizer.zero_grad()
-    assert all(torch.is_tensor(element) for element in images), "All elements in the batch should be PyTorch tensors."
+    if not args.no_jsd:
+        assert all(torch.is_tensor(element) for element in images), "All elements in the batch should be PyTorch tensors."
+    else:
+        assert torch.is_tensor(images), "Input should be a PyTorch tensor."
     # print(targets)
     if args.no_jsd:
       images = images.cuda(non_blocking=True)
@@ -345,6 +347,10 @@ def train(net, train_loader, optimizer):
 
     loss.backward()
     optimizer.step()
+    
+    # Clear gradients and free up memory
+    if i % 50 == 0:  # Every 50 batches
+        torch.cuda.empty_cache()
 
     # Compute batch computation time and update moving averages.
     batch_time = time.time() - end
@@ -464,36 +470,52 @@ def main():
   mean = [0.485, 0.456, 0.406]
   std = [0.229, 0.224, 0.225]
   
-  train_transform = transforms.Compose(
-      [transforms.RandomResizedCrop(224, antialias=True),
-       transforms.RandomHorizontalFlip()])
-       
-  preprocess = transforms.Compose(
-      [transforms.ToTensor(),
-       transforms.Normalize(mean, std)])
-       
-  preprocess1 = transforms.Compose(
-      [train_transform,
-       transforms.ToTensor(),
-       transforms.Normalize(mean, std)
-       ])
+  train_transform = transforms.Compose([
+      transforms.RandomResizedCrop(224, antialias=True),
+      transforms.RandomHorizontalFlip()
+      ])
+
+  preprocess = transforms.Compose([
+      transforms.ToTensor(),
+      transforms.Normalize(mean, std)
+      ])
+
+  preprocess1 = transforms.Compose([
+      train_transform,
+      transforms.ToTensor(),
+      transforms.Normalize(mean, std)
+      ])
   
   test_transform = transforms.Compose([
       transforms.Resize(256),
       transforms.CenterCrop(224),
       preprocess,
-  ])
+      ])
   
   
   traindir = os.path.join(args.clean_data, 'train')
   valdir = os.path.join(args.clean_data, 'val')
   train_dataset = datasets.ImageFolder(traindir, train_transform)
- 
-  loaded_dataset = np.load('adversarial_dataset_swin.npy', mmap_mode='r')
-  adversarial_labels = np.load('adversarial_label.npy', mmap_mode='r')
- 
+
+  # Load adversarial dataset with error handling
+  adv_dataset_path = 'adversarial_dataset_swin.npy'
+  adv_labels_path = 'adversarial_label.npy'
+  
+  if not os.path.exists(adv_dataset_path) or not os.path.exists(adv_labels_path):
+      raise FileNotFoundError(f"Adversarial dataset files not found: {adv_dataset_path}, {adv_labels_path}")
+      
+  try:
+      loaded_dataset = np.load(adv_dataset_path, mmap_mode='r')
+      adversarial_labels = np.load(adv_labels_path, mmap_mode='r')
+  except Exception as e:
+      raise RuntimeError(f"Error loading adversarial dataset: {e}")
+
+  # Validate adversarial dataset dimensions
+  if len(loaded_dataset) != len(adversarial_labels):
+      raise ValueError(f"Adversarial dataset size mismatch: {len(loaded_dataset)} vs {len(adversarial_labels)}")
+      
   adv_dataset = adversarial_generator(loaded_dataset, adversarial_labels)
-  train_dataset = AugMixDataset(train_dataset, adv_dataset, preprocess,preprocess1, args.no_jsd)
+  train_dataset = AugMixDataset(train_dataset, adv_dataset, preprocess, preprocess1, args.no_jsd)
   train_loader = torch.utils.data.DataLoader(
       train_dataset,
       batch_size=args.batch_size,
@@ -507,7 +529,11 @@ def main():
       shuffle=False,
       num_workers=args.num_workers,
       pin_memory=True)
- 
+
+  # Check CUDA availability
+  if not torch.cuda.is_available():
+      raise RuntimeError("CUDA is not available. This script requires GPU support.")
+      
   net = create_model(args, num_classes)
   
   optimizer = torch.optim.SGD(
@@ -521,15 +547,26 @@ def main():
   cudnn.benchmark = True
 
   start_epoch = 0
+  best_acc1 = 0
 
   if args.resume:
     if os.path.isfile(args.resume):
-      checkpoint = torch.load(args.resume)
-      start_epoch = checkpoint['epoch'] + 1
-      best_acc1 = checkpoint['best_acc1']
-      net.load_state_dict(checkpoint['state_dict'])
-      optimizer.load_state_dict(checkpoint['optimizer'])
-      print('Model restored from epoch:', start_epoch)
+      try:
+        checkpoint = torch.load(args.resume)
+        start_epoch = checkpoint['epoch'] + 1
+        best_acc1 = checkpoint['best_acc1']
+        net.load_state_dict(checkpoint['state_dict'])
+        optimizer.load_state_dict(checkpoint['optimizer'])
+        print('Model restored from epoch:', start_epoch)
+      except Exception as e:
+        print(f"Error loading checkpoint: {e}")
+        print("Starting training from scratch...")
+        start_epoch = 0
+        best_acc1 = 0
+    else:
+      print(f"Checkpoint file {args.resume} not found. Starting from scratch...")
+      start_epoch = 0
+      best_acc1 = 0
 
   if args.evaluate:
     test_loss, test_acc1 = test(net, val_loader)
