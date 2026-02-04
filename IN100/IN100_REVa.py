@@ -1,9 +1,9 @@
 """Main script to launch REVa training on ImageNet-100.
 
-Currently only supports both CCN and Swin Transformers training.
+Currently only supports both CNNs and Swin Transformers training.
 
 Example usage:
-  `python imagenet.py <path/to/ImageNet> <path/to/ImageNet-C>`
+  `python IN100_REVa.py <path/to/ImageNet> <path/to/ImageNet-C>`
 """
 from __future__ import print_function
 
