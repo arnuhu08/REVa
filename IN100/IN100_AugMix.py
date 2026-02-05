@@ -1,9 +1,23 @@
-"""Main script to launch REVa training on ImageNet-100.
+# Copyright 2019 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ==============================================================================
+"""Main script to launch AugMix training on ImageNet-100.
 
-Currently only supports both CCN and Swin Transformers training.
+Currently only supports ResNet-50 training.
 
 Example usage:
-  `python imagenet.py <path/to/ImageNet> <path/to/ImageNet-C>`
+  `python IN100_AugMix.py <path/to/ImageNet> <path/to/ImageNet-C>`
 """
 from __future__ import print_function
 
@@ -18,30 +32,24 @@ import numpy as np
 from PIL import Image
 import matplotlib.pyplot as plt
 import torch
-torch.cuda.empty_cache()
 import torch.backends.cudnn as cudnn
 import torch.nn.functional as F
 from torchvision import datasets
 from torchvision import models
 from torchvision import transforms
 from torch.utils.data import Subset
-from multiprocessing import Pool
-from third_party.WideResNet_pytorch.wideresnet import WideResNet
 from networks.resnet import ResNet_Model
+from adv import adv_generator
 
-def process_image(img):
-    return Image.fromarray(img)
-
-def check_nan_inf(tensor, name):
-    if torch.isnan(tensor).any() or torch.isinf(tensor).any():
-        print(f"NaN or Inf detected in {name}!")
+# import cv2
+# print(torch.cuda.is_available())
 
 augmentations.IMAGE_SIZE = 224
 num_classes = 100
 
 model_names = sorted(name for name in models.__dict__
-                     if name.islower() and not name.startswith('__') and
-                     callable(models.__dict__[name]))
+                    if name.islower() and not name.startswith('__') and
+                    callable(models.__dict__[name]))
 
 parser = argparse.ArgumentParser(description='Trains an ImageNet Classifier')
 parser.add_argument(
@@ -133,7 +141,7 @@ parser.add_argument(
 parser.add_argument(
     '--num-workers',
     type=int,
-    default=32,
+    default=4,
     help='Number of pre-fetching threads.')
 #adversarial examples parameters settings:
 parser.add_argument(
@@ -247,39 +255,21 @@ def aug(image, preprocess):
   mixed = (1 - m) * preprocess(image) + m * mix
   return mixed
 
-class adversarial_generator(torch.utils.data.Dataset):
-    def __init__(self, dataset, label):
-        self.dataset = dataset
-        self.label = label
-
-    def __getitem__(self, i):
-        x = self.dataset[i]
-        y = self.label[i]
-        x = Image.fromarray(x)
-        return x
-    
-    def __len__(self):
-        return len(self.dataset)
-
 class AugMixDataset(torch.utils.data.Dataset):
-  """Dataset wrapper to perform REVa augmentation."""
+  """Dataset wrapper to perform AugMix augmentation."""
 
-  def __init__(self, dataset, adv_dataset, preprocess,preprocess1, no_jsd=False):
+  def __init__(self, dataset, preprocess, no_jsd=False):
     self.dataset = dataset
-    self.adv_dataset = adv_dataset
     self.preprocess = preprocess
-    self.preprocess1 = preprocess1
     self.no_jsd = no_jsd
 
   def __getitem__(self, i):
     x, y = self.dataset[i]
-    x_adv =  self.adv_dataset[i]
-     
     if self.no_jsd:
       return aug(x, self.preprocess), y
     else:
       im_tuple = (self.preprocess(x), aug(x, self.preprocess),
-                  aug(x, self.preprocess), self.preprocess1(x_adv))
+                  aug(x, self.preprocess))
       return im_tuple, y
 
   def __len__(self):
@@ -303,8 +293,8 @@ def train(net, train_loader, optimizer):
     assert all(torch.is_tensor(element) for element in images), "All elements in the batch should be PyTorch tensors."
     # print(targets)
     if args.no_jsd:
-      images = images.cuda(non_blocking=True)
-      targets = targets.cuda(non_blocking=True)
+      images = images.cuda()
+      targets = targets.cuda()
       logits = net(images)
       loss = F.cross_entropy(logits, targets)
       acc1, acc5 = accuracy(logits, targets, topk=(1, 5))  # pylint: disable=unbalanced-tuple-unpacking
@@ -312,35 +302,22 @@ def train(net, train_loader, optimizer):
       images_all = torch.cat(images, 0).cuda()
       targets = targets.cuda()
       logits_all = net(images_all)
-      logits_clean, logits_aug1, logits_aug2, logits_adv = torch.split(
+      logits_clean, logits_aug1, logits_aug2 = torch.split(
           logits_all, images[0].size(0))
-      
-      check_nan_inf(images_all, "images_all")
-      check_nan_inf(targets, "targets")
-
 
       # Cross-entropy is only computed on clean images
-      loss_clean = F.cross_entropy(logits_clean, targets)
+      loss = F.cross_entropy(logits_clean, targets)
 
-      p_clean, p_aug1, p_aug2, p_adv = F.softmax(
+      p_clean, p_aug1, p_aug2 = F.softmax(
           logits_clean, dim=1), F.softmax(
               logits_aug1, dim=1), F.softmax(
-                  logits_aug2, dim=1), F.softmax(
-                  logits_adv, dim=1)
-      
-     
-      p_mixture = torch.clamp((p_clean + p_aug1 + p_aug2 + p_adv) / 4., 1e-7, 1).log()
+                  logits_aug2, dim=1)
 
-      loss_jsd = 16 * (F.kl_div(p_mixture, p_clean, reduction='batchmean') +
+      # Clamp mixture distribution to avoid exploding KL divergence
+      p_mixture = torch.clamp((p_clean + p_aug1 + p_aug2) / 3., 1e-7, 1).log()
+      loss += 12 * (F.kl_div(p_mixture, p_clean, reduction='batchmean') +
                     F.kl_div(p_mixture, p_aug1, reduction='batchmean') +
-                    F.kl_div(p_mixture, p_aug2, reduction='batchmean') +
-                    F.kl_div(p_mixture, p_adv, reduction='batchmean')) / 4.
-      
-      loss_adv =  F.cross_entropy(logits_adv, targets)
-
-      # Combined loss
-      loss = loss_clean + 0.5*loss_jsd + 0.5*loss_adv
-
+                    F.kl_div(p_mixture, p_aug2, reduction='batchmean')) / 3.
       acc1, acc5 = accuracy(logits_clean, targets, topk=(1, 5))  # pylint: disable=unbalanced-tuple-unpacking
 
     loss.backward()
@@ -409,7 +386,6 @@ def test_c(net, test_transform):
 
   return corruption_accs
 
-#     return model
 def create_model(args, num_classes):
     """Creates a torchvision model (CNN or Transformer) and modifies the classification head."""
 
@@ -425,7 +401,7 @@ def create_model(args, num_classes):
 
     # Try to identify and replace the classification head
     if hasattr(model, 'fc') and isinstance(model.fc, torch.nn.Linear):
-        
+        # For models like ResNet
         model.fc = torch.nn.Linear(model.fc.in_features, num_classes)
 
         for param in model.parameters():
@@ -455,7 +431,6 @@ def unfreeze_layers(net, epoch, freeze_after_epoch=5):
             param.requires_grad = True
         print(f"=> All layers unfrozen at epoch {epoch}")
 
-
 def main():
   torch.manual_seed(1)
   np.random.seed(1)
@@ -463,53 +438,37 @@ def main():
   # Load datasets
   mean = [0.485, 0.456, 0.406]
   std = [0.229, 0.224, 0.225]
-  
+
   train_transform = transforms.Compose(
-      [transforms.RandomResizedCrop(224, antialias=True),
+      [transforms.RandomResizedCrop(224),
        transforms.RandomHorizontalFlip()])
-       
   preprocess = transforms.Compose(
       [transforms.ToTensor(),
        transforms.Normalize(mean, std)])
-       
-  preprocess1 = transforms.Compose(
-      [train_transform,
-       transforms.ToTensor(),
-       transforms.Normalize(mean, std)
-       ])
-  
   test_transform = transforms.Compose([
       transforms.Resize(256),
       transforms.CenterCrop(224),
       preprocess,
   ])
   
-  
+  # subset_indices =  list(range(1000))
   traindir = os.path.join(args.clean_data, 'train')
   valdir = os.path.join(args.clean_data, 'val')
   train_dataset = datasets.ImageFolder(traindir, train_transform)
- 
-  loaded_dataset = np.load('adversarial_dataset_swin.npy', mmap_mode='r')
-  adversarial_labels = np.load('adversarial_label.npy', mmap_mode='r')
- 
-  adv_dataset = adversarial_generator(loaded_dataset, adversarial_labels)
-  train_dataset = AugMixDataset(train_dataset, adv_dataset, preprocess,preprocess1, args.no_jsd)
+  train_dataset = AugMixDataset(train_dataset, preprocess, args.no_jsd)
   train_loader = torch.utils.data.DataLoader(
       train_dataset,
       batch_size=args.batch_size,
       shuffle=True,
-      num_workers=args.num_workers,
-      pin_memory=True)
-  
+      num_workers=args.num_workers)
   val_loader = torch.utils.data.DataLoader(
       datasets.ImageFolder(valdir, test_transform),
       batch_size=args.batch_size,
       shuffle=False,
-      num_workers=args.num_workers,
-      pin_memory=True)
- 
-  net = create_model(args, num_classes)
+      num_workers=args.num_workers)
   
+  net = create_model(args, num_classes)
+
   optimizer = torch.optim.SGD(
       net.parameters(),
       args.learning_rate,
@@ -539,6 +498,8 @@ def main():
     corruption_accs = test_c(net, test_transform)
     for c in CORRUPTIONS:
       print('\t'.join(map(str, [c] + corruption_accs[c])))
+      # print('\t'.join([c] + list(map(str, corruption_accs[c]))))
+
 
     print('mCE (normalized by AlexNet): ', compute_mce(corruption_accs)[0])
     print('uCE (average of unnormalized CE): ', compute_mce(corruption_accs)[1])
@@ -550,7 +511,7 @@ def main():
     raise Exception('%s is not a dir' % args.save)
 
   log_path = os.path.join(args.save,
-                          'imagenetREVa1_{}_training_log.csv'.format(args.model))
+                          'AXimagenet_{}_training_log.csv'.format(args.model))
   with open(log_path, 'w') as f:
     f.write(
         'epoch,batch_time,train_loss,train_acc1(%),test_loss,test_acc1(%)\n')
@@ -577,10 +538,10 @@ def main():
         'optimizer': optimizer.state_dict(),
     }
 
-    save_path = os.path.join(args.save, f'REVacheckpoint_{args.model}.pth.tar')
+    save_path = os.path.join(args.save, 'AXcheckpoint_{args.model}.pth.tar')
     torch.save(checkpoint, save_path)
     if is_best:
-      shutil.copyfile(save_path, os.path.join(args.save, f'REVamodel_{args.model}_best.pth.tar'))
+      shutil.copyfile(save_path, os.path.join(args.save, 'AXmodel_best_{args.model}.pth.tar'))
 
     with open(log_path, 'a') as f:
       f.write('%03d,%0.3f,%0.6f,%0.2f,%0.5f,%0.2f\n' % (
@@ -601,8 +562,9 @@ def main():
   for c in CORRUPTIONS:
     print('\t'.join(map(str, [c] + corruption_accs[c])))
 
-  print('mCE (normalized by AlexNet): ', compute_mce(corruption_accs)[0])
+  print('mCE (normalized by AlexNet):', compute_mce(corruption_accs)[0])
   print('uCE (average of unnormalized CE): ', compute_mce(corruption_accs)[1])
+
 
 if __name__ == '__main__':
   main()
