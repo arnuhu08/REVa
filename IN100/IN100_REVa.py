@@ -26,7 +26,7 @@ from torchvision import models
 from torchvision import transforms
 from torch.utils.data import Subset
 from multiprocessing import Pool
-from third_party.WideResNet_pytorch.wideresnet import WideResNet
+# from third_party.WideResNet_pytorch.wideresnet import WideResNet
 
 def process_image(img):
     return Image.fromarray(img)
