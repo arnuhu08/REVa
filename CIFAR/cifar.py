@@ -20,6 +20,7 @@ import augmentations
 from models.cifar.allconv import AllConvNet
 import numpy as np
 from third_party.ResNeXt_DenseNet.models.densenet import densenet
+from third_party.ResNeXt_DenseNet.models.resnext import resnext29
 from third_party.WideResNet_pytorch.wideresnet import WideResNet
 
 import torch
@@ -222,9 +223,9 @@ def train(net, train_loader, optimizer, scheduler):
         p_aug2 = F.softmax(logits_aug2, dim=1)
         p_mixture = torch.clamp((p_clean + p_aug1 + p_aug2) / 3., 1e-7, 1).log()
         loss_jsd = 12 * (F.kl_div(p_mixture, p_clean, reduction='batchmean') +
-                         F.kl_div(p_mixture, p_aug1, reduction='batchmean')  +
-                         F.kl_div(p_mixture, p_aug2, reduction='batchmean')
-                         ) / 3.
+                        F.kl_div(p_mixture, p_aug1, reduction='batchmean')  +
+                        F.kl_div(p_mixture, p_aug2, reduction='batchmean')
+                        ) / 3.
 
         # Forward pass and loss calculation for adversarial images
         logits_adv = net(adversarial_images)
@@ -311,10 +312,10 @@ def main():
   # Load datasets
   train_transform = transforms.Compose(
       [transforms.RandomHorizontalFlip(),
-       transforms.RandomCrop(32, padding=4)])
+      transforms.RandomCrop(32, padding=4)])
   preprocess = transforms.Compose(
       [transforms.ToTensor(),
-       transforms.Normalize([0.5] * 3, [0.5] * 3)])
+      transforms.Normalize([0.5] * 3, [0.5] * 3)])
   test_transform = preprocess
 
   if args.dataset == 'cifar10':
