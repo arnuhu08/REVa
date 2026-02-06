@@ -362,8 +362,8 @@ def main():
     net = WideResNet(args.layers, num_classes, args.widen_factor, args.droprate)
   elif args.model == 'allconv':
     net = AllConvNet(num_classes)
-  # elif args.model == 'resnext':
-  #   net = resnext29(num_classes=num_classes)
+  elif args.model == 'resnext':
+    net = resnext29(num_classes=num_classes)
 
   optimizer = torch.optim.SGD(
       net.parameters(),
