@@ -10,12 +10,12 @@ class ResNeXtBottleneck(nn.Module):
   expansion = 4
 
   def __init__(self,
-               inplanes,
-               planes,
-               cardinality,
-               base_width,
-               stride=1,
-               downsample=None):
+              inplanes,
+              planes,
+              cardinality,
+              base_width,
+              stride=1,
+              downsample=None):
     super(ResNeXtBottleneck, self).__init__()
 
     dim = int(math.floor(planes * (base_width / 64.0)))
@@ -140,5 +140,5 @@ class CifarResNeXt(nn.Module):
 
 def resnext29(num_classes=10, cardinality=4, base_width=32):
   model = CifarResNeXt(ResNeXtBottleneck, 29, cardinality, base_width,
-                       num_classes)
+                      num_classes)
   return model

@@ -70,21 +70,21 @@ class DenseNet(nn.Module):
     self.conv1 = nn.Conv2d(3, n_channels, kernel_size=3, padding=1, bias=False)
 
     self.dense1 = self._make_dense(n_channels, growth_rate, n_dense_blocks,
-                                   bottleneck)
+                                  bottleneck)
     n_channels += n_dense_blocks * growth_rate
     n_out_channels = int(math.floor(n_channels * reduction))
     self.trans1 = Transition(n_channels, n_out_channels)
 
     n_channels = n_out_channels
     self.dense2 = self._make_dense(n_channels, growth_rate, n_dense_blocks,
-                                   bottleneck)
+                                  bottleneck)
     n_channels += n_dense_blocks * growth_rate
     n_out_channels = int(math.floor(n_channels * reduction))
     self.trans2 = Transition(n_channels, n_out_channels)
 
     n_channels = n_out_channels
     self.dense3 = self._make_dense(n_channels, growth_rate, n_dense_blocks,
-                                   bottleneck)
+                                  bottleneck)
     n_channels += n_dense_blocks * growth_rate
 
     self.bn1 = nn.BatchNorm2d(n_channels)
